@@ -31,6 +31,8 @@ import io.github.valfadeev.rundeck.plugin.nomad.common.TaskConfigProvider;
 import io.github.valfadeev.rundeck.plugin.nomad.nomad.NomadConfigOptions;
 import io.github.valfadeev.rundeck.plugin.nomad.nomad.NomadJobProvider;
 import io.github.valfadeev.rundeck.plugin.nomad.nomad.NomadPropertyComposer;
+import io.github.valfadeev.rundeck.plugin.nomad.util.ParseInput;
+
 import static io.github.valfadeev.rundeck.plugin.nomad.nomad.NomadAllocationPredicates.either;
 import static io.github.valfadeev.rundeck.plugin.nomad.nomad.NomadAllocationPredicates.failedAllocationsOver;
 import static io.github.valfadeev.rundeck.plugin.nomad.nomad.NomadAllocationPredicates.allAllocationsFinished;
@@ -94,15 +96,22 @@ public abstract class NomadStepPlugin implements StepPlugin, Describable {
         String rundeckJobId = String.format("%s-%s",rundeckJob.get("id"), ts);
         String rundeckJobName = String.format("%s-%s", rundeckJob.get("name"), ts);
 
+        String nomadTokenStoragePath = configuration.get(NomadConfigOptions.ACL_TOKEN).toString();
+        String nomadAuthToken = ParseInput.getPWFromStorage(context, nomadTokenStoragePath);
+
         String nomadUrl = configuration
                 .get(NomadConfigOptions.NOMAD_URL)
                 .toString();
+
         NomadApiConfiguration config =
                 new NomadApiConfiguration
                         .Builder()
                         .setAddress(nomadUrl)
+                        .setAuthToken(nomadAuthToken)
                         .build();
+
         NomadApiClient apiClient = new NomadApiClient(config);
+        
 
         // obtain current agent configuration to look up some default values
         Map<String, Object> agentConfig;
