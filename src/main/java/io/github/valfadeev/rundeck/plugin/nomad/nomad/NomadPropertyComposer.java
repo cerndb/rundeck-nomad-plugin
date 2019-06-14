@@ -20,6 +20,18 @@ public class NomadPropertyComposer extends PropertyComposer {
                         .build()
                 )
                 .property(PropertyBuilder.builder()
+                        .string(ACL_TOKEN)
+                        .title("Select Nomad ACL token")
+                        .description("Authentication token for cluster access.")
+                        .required(false)
+                        .renderingOption(StringRenderingConstants.SELECTION_ACCESSOR_KEY,
+                            StringRenderingConstants.SelectionAccessor.STORAGE_PATH)
+                        .renderingOption(StringRenderingConstants.STORAGE_PATH_ROOT_KEY, "keys")
+                        .renderingOption(StringRenderingConstants.STORAGE_FILE_META_FILTER_KEY, "Rundeck-data-type=password")
+                        .defaultValue("")
+                        .build()
+                )
+                .property(PropertyBuilder.builder()
                         .string(NOMAD_DATACENTER)
                         .title("Nomad datacenter")
                         .description("A list of datacenters in the region "

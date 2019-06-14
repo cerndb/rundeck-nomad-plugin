@@ -101,6 +101,7 @@ public abstract class NomadStepPlugin implements StepPlugin, Describable {
                 new NomadApiConfiguration
                         .Builder()
                         .setAddress(nomadUrl)
+                        .setAuthToken(nomadAcl)
                         .build();
         NomadApiClient apiClient = new NomadApiClient(config);
 

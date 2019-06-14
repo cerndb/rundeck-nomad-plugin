@@ -2,6 +2,11 @@ package io.github.valfadeev.rundeck.plugin.nomad.nomad;
 
 public class NomadConfigOptions {
     public static final String NOMAD_URL = "nomad_url";
+    public static final String ACL_TOKEN = "acl_token";
+    public static final String SELECTION_ACCESSOR_KEY = "selection_accessor_key";
+    public static final String STORAGE_PATH = "storage_path";
+    public static final String STORAGE_PATH_ROOT_KEY = "storage_path_root_key";
+    public static final String STORAGE_FILE_META_FILTER_KEY = "storage_file_meta_filter_key";
     public static final String NOMAD_DATACENTER = "nomad_datacenter";
     public static final String NOMAD_REGION = "nomad_region";
     public static final String NOMAD_GROUP_COUNT = "nomad_group_count";
