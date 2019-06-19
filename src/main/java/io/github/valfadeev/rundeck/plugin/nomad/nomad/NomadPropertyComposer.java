@@ -28,6 +28,7 @@ public class NomadPropertyComposer extends PropertyComposer {
                             StringRenderingConstants.SelectionAccessor.STORAGE_PATH)
                         .renderingOption(StringRenderingConstants.STORAGE_PATH_ROOT_KEY, "keys")
                         .renderingOption(StringRenderingConstants.STORAGE_FILE_META_FILTER_KEY, "Rundeck-data-type=password")
+                        .renderingOption(StringRenderingConstants.ValueConversion.STORAGE_PATH_AUTOMATIC_READ)
                         .defaultValue("")
                         .build()
                 )

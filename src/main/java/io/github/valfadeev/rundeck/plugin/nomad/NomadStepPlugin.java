@@ -94,6 +94,9 @@ public abstract class NomadStepPlugin implements StepPlugin, Describable {
         String rundeckJobId = String.format("%s-%s",rundeckJob.get("id"), ts);
         String rundeckJobName = String.format("%s-%s", rundeckJob.get("name"), ts);
 
+        String nomadAcl = configuration
+                .get(NomadConfigOptions.ACL_TOKEN)
+                .toString();
         String nomadUrl = configuration
                 .get(NomadConfigOptions.NOMAD_URL)
                 .toString();
