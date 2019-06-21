@@ -111,6 +111,8 @@ public abstract class NomadStepPlugin implements StepPlugin, Describable {
         // obtain current agent configuration to look up some default values
         Map<String, Object> agentConfig;
         AgentApi agentApi = apiClient.getAgentApi();
+        Object nomadToken = configuration
+                .get(NomadConfigOptions.ACL_TOKEN);
         try {
             agentConfig = agentApi
                     .self()
@@ -118,7 +120,7 @@ public abstract class NomadStepPlugin implements StepPlugin, Describable {
                     .getConfig();
         }
         catch (NomadException | IOException e) {
-            throw new StepException("Error while getting agent configuration",
+            throw new StepException(String.format("Error while getting agent configuration %s", nomadToken),
                     Reason.AgentConfigReadFailure);
         }
 
