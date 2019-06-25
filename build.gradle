@@ -2,14 +2,14 @@ plugins {
     id 'pl.allegro.tech.build.axion-release' version '1.7.1'
 }
 
-version = '2.11.5'
+version = '2.10.5'
 def nomad_sdk_version = '0.8.6.1'
 defaultTasks 'clean','build'
 apply plugin: 'java'
 apply plugin: 'idea'
 apply plugin: 'pl.allegro.tech.build.axion-release'
 sourceCompatibility = 1.8
-ext.rundeckPluginVersion= '1.1'
+ext.rundeckPluginVersion= '1.2'
 
 configurations{
     //declare custom pluginLibs configuration to include only libs for this plugin
@@ -31,7 +31,8 @@ dependencies {
     compile(
             [group: 'org.rundeck', name: 'rundeck-core', version: version, ext: 'jar'],
             [group: 'org.rundeck', name: 'rundeck-storage-api', version: version, ext: 'jar'],
-            [group: 'com.hashicorp.nomad', name: 'nomad-sdk', version: nomad_sdk_version , ext: 'jar']
+            [group: 'com.hashicorp.nomad', name: 'nomad-sdk', version: nomad_sdk_version , ext: 'jar'],
+            [group: 'log4j', name: 'log4j', version: "1.2.17" , ext: 'jar']
     )
 
     pluginLibs(
@@ -74,7 +75,8 @@ task copyToLib(type: Copy) {
 
 ext.pluginClassNames=[
         'io.github.valfadeev.rundeck.plugin.nomad.NomadDockerStepPlugin',
-        'io.github.valfadeev.rundeck.plugin.nomad.NomadJavaStepPlugin'
+        'io.github.valfadeev.rundeck.plugin.nomad.NomadJavaStepPlugin',
+        'io.github.valfadeev.rundeck.plugin.nomad.NomadResourceFactory'
 ].join(",")
 
 jar {

@@ -112,7 +112,6 @@ public abstract class NomadStepPlugin implements StepPlugin, Describable {
 
         NomadApiClient apiClient = new NomadApiClient(config);
         
-
         // obtain current agent configuration to look up some default values
         Map<String, Object> agentConfig;
         AgentApi agentApi = apiClient.getAgentApi();
