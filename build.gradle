@@ -76,7 +76,9 @@ task copyToLib(type: Copy) {
 ext.pluginClassNames=[
         'io.github.valfadeev.rundeck.plugin.nomad.NomadDockerStepPlugin',
         'io.github.valfadeev.rundeck.plugin.nomad.NomadJavaStepPlugin',
-        'io.github.valfadeev.rundeck.plugin.nomad.NomadResourceFactory'
+        'io.github.valfadeev.rundeck.plugin.nomad.NomadResourceFactory',
+        'io.github.valfadeev.rundeck.plugin.nomad.NomadNodeStepPlugin',
+        'io.github.valfadeev.rundeck.plugin.nomad.NomadJobStepPlugin'
 ].join(",")
 
 jar {
@@ -84,6 +86,7 @@ jar {
     from "$buildDir/output"
 
     manifest {
+        attributes 'Rundeck-Plugin-Version' : '1.2'
         attributes 'Rundeck-Plugin-Classnames': pluginClassNames
         attributes 'Rundeck-Plugin-File-Version': version
         attributes 'Rundeck-Plugin-Version': rundeckPluginVersion, 'Rundeck-Plugin-Archive': 'true'

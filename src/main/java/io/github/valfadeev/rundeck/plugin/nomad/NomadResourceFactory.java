@@ -104,6 +104,7 @@ public class NomadResourceFactory implements ResourceModelSourceFactory, Describ
 
             NomadApiClient apiClient = new NomadApiClient(config);
             logger.error("PONG!");
+            logger.debug("PONG!");
 
             try {
                 // Populate NodeSet with Active Job references
@@ -126,6 +127,7 @@ public class NomadResourceFactory implements ResourceModelSourceFactory, Describ
                     node.setAttribute("periodic", Boolean.toString(job.getPeriodic()));
                     node.setAttribute("priority", Integer.toString(job.getPriority()));
                     node.setAttribute("token_path", configuration.getProperty("nomad_token_path"));
+                    node.setAttribute("nomad_url", nomadUrl);
                     node.setAttribute("unmapped", job.getUnmappedProperties().toString());
 
                     HashSet<String> tagset = new HashSet<>();
