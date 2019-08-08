@@ -103,16 +103,28 @@ public class NomadJobStepPlugin implements StepPlugin, Describable {
                                 logger.log(5, "Nomad Job: " + job.toString());
                                 switch(configuration.get("taskSelect").toString()) {
                                         case "Start":
+                                                {
                                                 logger.log(2, "Starting job");
-                                                Job j = new Job();
+                                                Job j = jobsApi.info(job.getId()).getValue();
+                                                logger.log(5, "j: " + j.toString());
+                                                j.setStop(false);
                                                 jobsApi.register(j);
+                                                }
                                                 break;
                                         case "Stop": 
+                                                {
                                                 logger.log(2, "Stopping job");
-                                                jobsApi.deregister(job.getId());
+                                                Job j = jobsApi.info(job.getId()).getValue();
+                                                j.setStop(true);
+                                                jobsApi.register(j);
+                                                }
                                                 break;
                                         case "Update": 
+                                                {
                                                 logger.log(2, "Updating job");
+                                                Job j = jobsApi.info(job.getId()).getValue();
+                                                jobsApi.register(j);
+                                                }
                                                 break;
                                         case "Purge": 
                                                 logger.log(2, "Purging job");
