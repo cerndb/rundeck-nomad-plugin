@@ -1,6 +1,8 @@
 package io.github.valfadeev.rundeck.plugin.nomad;
 
+import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import com.dtolabs.rundeck.core.common.INodeEntry;
@@ -16,9 +18,14 @@ import com.dtolabs.rundeck.plugins.step.PluginStepContext;
 import com.dtolabs.rundeck.plugins.step.StepPlugin;
 import com.dtolabs.rundeck.plugins.util.DescriptionBuilder;
 import com.dtolabs.rundeck.plugins.util.PropertyBuilder;
+import com.hashicorp.nomad.apimodel.JobListStub;
+import com.hashicorp.nomad.apimodel.Job;
 import com.hashicorp.nomad.apimodel.Node;
+import com.hashicorp.nomad.javasdk.JobsApi;
 import com.hashicorp.nomad.javasdk.NomadApiClient;
 import com.hashicorp.nomad.javasdk.NomadApiConfiguration;
+import com.hashicorp.nomad.javasdk.NomadException;
+import com.hashicorp.nomad.javasdk.ServerQueryResponse;
 import com.dtolabs.rundeck.plugins.descriptions.PluginDescription;
 
 import io.github.valfadeev.rundeck.plugin.nomad.NomadNodeStepPlugin.Reason;
@@ -40,30 +47,22 @@ public class NomadJobStepPlugin implements StepPlugin, Describable {
     public Description getDescription() {
         return DescriptionBuilder.builder()
             .name(SERVICE_PROVIDER_NAME)
-            .title("NomadNodeStep")
-            .description("Example WorkflowNode Step")
+            .title("NomadJobStep")
+            .description("Nomad Job Workflow Step")
             .property(PropertyBuilder.builder()
-                          .string("example")
-                          .title("Example String")
-                          .description("Example description")
+                          .freeSelect("taskSelect")
+                          .title("Job Operation")
+                          .description("Job Operation")
                           .required(true)
+                          .defaultValue("Stop")
+                          .values("Start", "Stop", "Update", "Purge")
                           .build()
             )
             .property(PropertyBuilder.builder()
-                          .booleanType("exampleBoolean")
-                          .title("Example Boolean")
-                          .description("Example Boolean?")
+                          .string("datacenter")
+                          .title("Datacenter")
+                          .description("New Datacenter value")
                           .required(false)
-                          .defaultValue("false")
-                          .build()
-            )
-            .property(PropertyBuilder.builder()
-                          .freeSelect("exampleFreeSelect")
-                          .title("Example Free Select")
-                          .description("Example Free Select")
-                          .required(false)
-                          .defaultValue("Blue")
-                          .values("Blue", "Beige", "Black")
                           .build()
             )
             .build();
@@ -72,16 +71,13 @@ public class NomadJobStepPlugin implements StepPlugin, Describable {
    public void executeStep(final PluginStepContext context, final Map<String, Object> configuration) throws StepException {
         
         PluginLogger logger = context.getExecutionContext().getExecutionListener();
-        logger.log(2, String.format("Doing nothing"));
-        logger.log(2, context.toString());
-        logger.log(2,"Example step extra config: " + configuration);
-        logger.log(2,"Example step num: " + context.getStepNumber());
-        logger.log(2,"Example step context: " + context.getStepContext());
+        logger.log(2, "Configuration: " + configuration);
         
         INodeSet Nodes = context.getNodes();
         logger.log(5, Nodes.toString());
         for (INodeEntry node : Nodes.getNodes()) {
 
+                logger.log(2, "Node: " + node.getNodename());
                 logger.log(2, node.toString());
 
                 Map<String, String> attributes = node.getAttributes();
@@ -98,6 +94,39 @@ public class NomadJobStepPlugin implements StepPlugin, Describable {
                                 .build();
                 NomadApiClient apiClient = new NomadApiClient(config);
 
+                JobsApi jobsApi = apiClient.getJobsApi();
+
+                ServerQueryResponse<List<JobListStub>> jobs;
+                try {
+                        jobs = jobsApi.list(node.getNodename());
+                        for (JobListStub job : jobs.getValue()) {
+                                logger.log(5, "Nomad Job: " + job.toString());
+                                switch(configuration.get("taskSelect").toString()) {
+                                        case "Start":
+                                                logger.log(2, "Starting job");
+                                                Job j = new Job();
+                                                jobsApi.register(j);
+                                                break;
+                                        case "Stop": 
+                                                logger.log(2, "Stopping job");
+                                                jobsApi.deregister(job.getId());
+                                                break;
+                                        case "Update": 
+                                                logger.log(2, "Updating job");
+                                                break;
+                                        case "Purge": 
+                                                logger.log(2, "Purging job");
+                                                jobsApi.deregister(job.getId(), true);
+                                                break;
+                                        default:logger.log(2, "Task not implemented");
+                                                break;
+
+                                }
+                        }
+                } catch (IOException | NomadException e) {
+                        logger.log(0, "Nomad API Error:" + e.getMessage());
+                        e.printStackTrace();
+                }
         }
 
 
