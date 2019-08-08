@@ -24,6 +24,7 @@ import com.hashicorp.nomad.apimodel.Job;
 import com.hashicorp.nomad.apimodel.JobListStub;
 import com.hashicorp.nomad.apimodel.NodeListStub;
 import com.hashicorp.nomad.javasdk.AgentApi;
+import com.hashicorp.nomad.javasdk.ApiObject;
 import com.hashicorp.nomad.javasdk.JobsApi;
 import com.hashicorp.nomad.javasdk.NodesApi;
 import com.hashicorp.nomad.javasdk.NomadApiClient;
@@ -36,6 +37,7 @@ import org.apache.log4j.Logger;
 
 import java.util.List;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -128,9 +130,19 @@ public class NomadResourceFactory implements ResourceModelSourceFactory, Describ
                     node.setAttribute("priority", Integer.toString(job.getPriority()));
                     node.setAttribute("token_path", configuration.getProperty("nomad_token_path"));
                     node.setAttribute("nomad_url", nomadUrl);
-                    node.setAttribute("unmapped", job.getUnmappedProperties().toString());
-
+                    Map<String, Object> unmapped = job.getUnmappedProperties();
+                    logger.error("Unmaped attributes: " + unmapped.toString());
+                    node.setAttribute("unmapped", unmapped.toString());
+                    // Unmapped attributes
+                    node.setAttribute("datacenters", unmapped.get("Datacenters").toString());
+                    
                     HashSet<String> tagset = new HashSet<>();
+                    ArrayList<String> datacenters = (ArrayList<String>) unmapped.get("Datacenters");
+                    for (String datacenter : datacenters) {
+                        logger.error("datacenter class: " + datacenters.getClass().toString());
+                        tagset.add("datacenter_" + datacenter);
+                    }
+                    
                     tagset.add("nomad_cluster_" + cluster_name);
                     tagset.add("nomad_job");
                     if (tags != null) {
@@ -163,7 +175,9 @@ public class NomadResourceFactory implements ResourceModelSourceFactory, Describ
                     node.setAttribute("drain", Boolean.toString(nomadNode.getDrain()));
                     node.setAttribute("version", nomadNode.getVersion());
                     node.setAttribute("drivers", nomadNode.getDrivers().toString());
-                    node.setAttribute("unmapped", nomadNode.getUnmappedProperties().toString());
+                    Map<String, Object> unmapped = nomadNode.getUnmappedProperties();
+                    logger.error("Unmaped attributes: " + unmapped.toString());
+                    node.setAttribute("unmapped", unmapped.toString());
 
                     HashSet<String> tagset = new HashSet<>();
                     tagset.add("nomad_cluster_" + cluster_name);
