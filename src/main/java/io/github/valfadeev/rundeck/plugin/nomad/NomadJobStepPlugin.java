@@ -1,6 +1,7 @@
 package io.github.valfadeev.rundeck.plugin.nomad;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -55,14 +56,15 @@ public class NomadJobStepPlugin implements StepPlugin, Describable {
                           .description("Job Operation")
                           .required(true)
                           .defaultValue("Stop")
-                          .values("Start", "Stop", "Update", "Purge")
+                          .values("Start", "Stop", "Restart", "Update", "Purge")
                           .build()
             )
             .property(PropertyBuilder.builder()
                           .string("datacenter")
                           .title("Datacenter")
-                          .description("New Datacenter value")
+                          .description("New Datacenter value. Comma separated list")
                           .required(false)
+                          .defaultValue("")
                           .build()
             )
             .build();
@@ -119,10 +121,28 @@ public class NomadJobStepPlugin implements StepPlugin, Describable {
                                                 jobsApi.register(j);
                                                 }
                                                 break;
+                                        case "Restart": 
+                                                {
+                                                logger.log(2, "Stopping job");
+                                                Job j = jobsApi.info(job.getId()).getValue();
+                                                j.setStop(true);
+                                                jobsApi.register(j);
+                                                logger.log(2, "Sleeping 1000ms");
+                                                Thread.sleep(1000);
+                                                logger.log(2, "Starting job");
+                                                j.setStop(false);
+                                                jobsApi.register(j);
+                                                }
+                                                break;
                                         case "Update": 
                                                 {
-                                                logger.log(2, "Updating job");
+                                                logger.log(2, "Fetching Job Info");
                                                 Job j = jobsApi.info(job.getId()).getValue();
+                                                if (configuration.get("datacenter") != "") {
+                                                        String datacenter = (String) configuration.get("datacenter");
+                                                        logger.log(2, "New datacenter value: " + datacenter);
+                                                        j.setDatacenters(Arrays.asList(datacenter.split(",")));
+                                                        }
                                                 jobsApi.register(j);
                                                 }
                                                 break;
@@ -138,7 +158,10 @@ public class NomadJobStepPlugin implements StepPlugin, Describable {
                 } catch (IOException | NomadException e) {
                         logger.log(0, "Nomad API Error:" + e.getMessage());
                         e.printStackTrace();
-                }
+                } catch (InterruptedException e) {
+                        logger.log(0, "Thread Interrupted:" + e.getMessage());
+                        e.printStackTrace();
+                        }
         }
 
 
