@@ -20,6 +20,8 @@ import com.dtolabs.rundeck.core.resources.ResourceModelSourceException;
 import com.dtolabs.rundeck.plugins.PluginLogger;
 import com.dtolabs.rundeck.plugins.step.PluginStepContext;
 import com.dtolabs.rundeck.plugins.util.DescriptionBuilder;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.hashicorp.nomad.apimodel.Job;
 import com.hashicorp.nomad.apimodel.JobListStub;
 import com.hashicorp.nomad.apimodel.NodeListStub;
@@ -34,9 +36,13 @@ import com.hashicorp.nomad.javasdk.NomadResponse;
 import com.hashicorp.nomad.javasdk.ServerQueryResponse;
 
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
+import org.json.JSONArray;
 
 import java.util.List;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -155,29 +161,33 @@ public class NomadResourceFactory implements ResourceModelSourceFactory, Describ
                 logger.error("Checking nodes");
                 // Populate NodeSet structure with Nomad node references
                 NodesApi nodesApi = apiClient.getNodesApi();
-                logger.error("Node List" + nodesApi.list().getRawEntity());
-                ServerQueryResponse<List<NodeListStub>> nodeList = nodesApi.list();
+                String rawResponse = nodesApi.list().getRawEntity();
+                logger.error("Node List" + rawResponse);
+                JSONArray jsonArray = new JSONArray(rawResponse);
+                // (error: Failed to parse Date value '2019-08-06T10:35:38.624719396+02:00'
+                List<NodeListStub> nodeList = nodesApi.list().getValue();
+                //nodeList.forEach( nomadNode -> {
+                for (int index = 0; index < jsonArray.length(); index++){
 
-                for (NodeListStub nomadNode : nodeList.getValue()) {
-                    logger.error("Nomad Node: " + nomadNode.toString());
+                    JSONObject jNode = jsonArray.getJSONObject(index);
+
+                    logger.error("Nomad Node: " + jNode.toString());
+
                     NodeEntryImpl node = new NodeEntryImpl();
                     if (null == node.getAttributes()) {
                         node.setAttributes(new HashMap<>());
                     }
 
-                    node.setNodename(nomadNode.getName());
+                    node.setNodename((String) jNode.get("Name"));
                     node.setAttribute("cluster", cluster_name);
-                    node.setAttribute("id", nomadNode.getId());
-                    node.setAttribute("status", nomadNode.getStatus());
-                    node.setAttribute("class", nomadNode.getNodeClass());
-                    node.setAttribute("datacenter", nomadNode.getDatacenter());
-                    node.setAttribute("scheduling_elegibility", nomadNode.getSchedulingEligibility());
-                    node.setAttribute("drain", Boolean.toString(nomadNode.getDrain()));
-                    node.setAttribute("version", nomadNode.getVersion());
-                    node.setAttribute("drivers", nomadNode.getDrivers().toString());
-                    Map<String, Object> unmapped = nomadNode.getUnmappedProperties();
-                    logger.error("Unmaped attributes: " + unmapped.toString());
-                    node.setAttribute("unmapped", unmapped.toString());
+                    node.setAttribute("id", (String) jNode.get("ID"));
+                    node.setAttribute("address", (String) jNode.get("Address"));
+                    node.setAttribute("status", (String) jNode.get("Status"));
+                    node.setAttribute("datacenter", (String) jNode.get("Datacenter"));
+                    node.setAttribute("scheduling_elegibility", (String) jNode.get("SchedulingEligibility"));
+                    node.setAttribute("drain", jNode.get("Drain").toString());
+                    node.setAttribute("version", (String) jNode.get("Version"));
+                    //node.setAttribute("drivers", (String) jNode.get("Drivers"));
 
                     HashSet<String> tagset = new HashSet<>();
                     tagset.add("nomad_cluster_" + cluster_name);
@@ -187,7 +197,7 @@ public class NomadResourceFactory implements ResourceModelSourceFactory, Describ
                     }
                     node.setTags(tagset);
                     nodeSet.putNode(node);
-                }
+                };
 
             } catch (IOException e) {
                 logger.error("IO Exception: " + e.getMessage());
@@ -195,8 +205,7 @@ public class NomadResourceFactory implements ResourceModelSourceFactory, Describ
             } catch (NomadException e) {
                 logger.error("Nomad Exception: " + e.getMessage());
                 e.printStackTrace();
-
-            }
+			}
 
             return nodeSet;
         }
